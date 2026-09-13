@@ -1,0 +1,45 @@
+bundle:
+  name: bmsdp
+
+variables:
+  catalog_name:
+    description: Unity Catalog catalog name for this environment
+  landing_root:
+    description: ADLS landing zone root path for bronze Auto Loader sources
+  sql_warehouse_id:
+    description: Databricks SQL Warehouse id used to run setup SQL tasks
+
+include:
+  - resources/*.yml
+  - resources/**/*.yml
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://adb-<dev-workspace-id>.azuredatabricks.net
+    variables:
+      catalog_name: bmsdp_dev
+      landing_root: abfss://landing@bmsdpdevlake.dfs.core.windows.net
+      sql_warehouse_id: <dev-sql-warehouse-id>
+
+  stage:
+    mode: production
+    workspace:
+      host: https://adb-<stage-workspace-id>.azuredatabricks.net
+    variables:
+      catalog_name: bmsdp_stage
+      landing_root: abfss://landing@bmsdpstagelake.dfs.core.windows.net
+      sql_warehouse_id: <stage-sql-warehouse-id>
+
+  prod:
+    mode: production
+    workspace:
+      host: https://adb-<prod-workspace-id>.azuredatabricks.net
+    run_as:
+      service_principal_name: <prod-deployment-sp-app-id>
+    variables:
+      catalog_name: bmsdp_prod
+      landing_root: abfss://landing@bmsdpprodlake.dfs.core.windows.net
+      sql_warehouse_id: <prod-sql-warehouse-id>

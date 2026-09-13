@@ -1,0 +1,6 @@
+-r requirements.txt
+pyspark==3.5.3
+delta-spark==3.2.0
+pytest>=8.0.0
+chispa>=0.10.1
+ruff>=0.6.0

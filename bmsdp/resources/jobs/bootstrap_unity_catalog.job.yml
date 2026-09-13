@@ -1,0 +1,34 @@
+resources:
+  jobs:
+    bootstrap_unity_catalog:
+      name: bmsdp-bootstrap-unity-catalog
+      description: One-time/idempotent setup of catalogs, schemas, grants, and PII masking views.
+      tasks:
+        - task_key: create_catalogs_and_schemas
+          sql_task:
+            warehouse_id: ${var.sql_warehouse_id}
+            file:
+              path: ../src/setup/00_create_catalogs.sql
+            parameters:
+              catalog_name: ${var.catalog_name}
+              target: ${bundle.target}
+
+        - task_key: apply_grants
+          depends_on:
+            - task_key: create_catalogs_and_schemas
+          sql_task:
+            warehouse_id: ${var.sql_warehouse_id}
+            file:
+              path: ../src/setup/01_grants.sql
+            parameters:
+              catalog_name: ${var.catalog_name}
+
+        - task_key: apply_pii_masking_views
+          depends_on:
+            - task_key: apply_grants
+          sql_task:
+            warehouse_id: ${var.sql_warehouse_id}
+            file:
+              path: ../src/setup/02_pii_masking_views.sql
+            parameters:
+              catalog_name: ${var.catalog_name}

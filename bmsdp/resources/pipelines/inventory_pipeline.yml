@@ -1,0 +1,15 @@
+resources:
+  pipelines:
+    inventory_pipeline:
+      name: bmsdp-inventory-${bundle.target}
+      catalog: ${var.catalog_name}
+      target: inventory
+      photon: true
+      channel: CURRENT
+      libraries:
+        - notebook:
+            path: ../../src/pipelines/inventory/dlt_pipeline.py
+      configuration:
+        bmsdp.landing_root: ${var.landing_root}
+      continuous: false
+      development: ${bundle.target == "dev"}

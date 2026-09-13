@@ -1,0 +1,30 @@
+resources:
+  pipelines:
+    bookings_pipeline:
+      name: bmsdp-bookings-${bundle.target}
+      catalog: ${var.catalog_name}
+      target: bookings
+      photon: true
+      channel: CURRENT
+      libraries:
+        - notebook:
+            path: ../../src/pipelines/bookings/dlt_pipeline.py
+      configuration:
+        bmsdp.landing_root: ${var.landing_root}
+      continuous: false
+      development: ${bundle.target == "dev"}
+
+  jobs:
+    run_bookings_pipeline:
+      name: bmsdp-run-bookings-${bundle.target}
+      schedule:
+        quartz_cron_expression: "0 0 2 * * ?"
+        timezone_id: "Asia/Kolkata"
+        pause_status: ${bundle.target == "dev" ? "PAUSED" : "UNPAUSED"}
+      tasks:
+        - task_key: run_bookings_dlt_pipeline
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.bookings_pipeline.id}
+      email_notifications:
+        on_failure:
+          - data-eng-oncall@bookmyshow.example.com

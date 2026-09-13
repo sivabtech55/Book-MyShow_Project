@@ -1,0 +1,27 @@
+resources:
+  pipelines:
+    pricing_pipeline:
+      name: bmsdp-pricing-${bundle.target}
+      catalog: ${var.catalog_name}
+      target: pricing
+      photon: true
+      channel: CURRENT
+      libraries:
+        - notebook:
+            path: ../../src/pipelines/pricing/dlt_pipeline.py
+      configuration:
+        bmsdp.landing_root: ${var.landing_root}
+      continuous: false
+      development: ${bundle.target == "dev"}
+
+    users_360_pipeline:
+      name: bmsdp-users-360-${bundle.target}
+      catalog: ${var.catalog_name}
+      target: users
+      photon: true
+      channel: CURRENT
+      libraries:
+        - notebook:
+            path: ../../src/pipelines/users/dlt_pipeline.py
+      continuous: false
+      development: ${bundle.target == "dev"}
