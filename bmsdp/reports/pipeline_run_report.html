@@ -1,0 +1,588 @@
+<title>Pipeline Run Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F7F2E7;
+    --surface: #FFFDF8;
+    --surface-2: #EFE7D6;
+    --ink: #221D14;
+    --ink-2: #6B6151;
+    --ink-3: #918872;
+    --border: #E1D6BC;
+    --accent: #A81C2E;
+    --accent-ink: #FFFDF8;
+    --gold: #B98A2E;
+    --teal: #2E6F68;
+    --terracotta: #B85C33;
+    --good: #3F7D4F;
+    --warn: #A66A16;
+    --critical: #A81E2E;
+    --shadow: 0 1px 2px rgba(34,29,20,0.06), 0 4px 16px rgba(34,29,20,0.05);
+    --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+    --font-body: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #17130D;
+      --surface: #201A11;
+      --surface-2: #2B2318;
+      --ink: #F3ECDC;
+      --ink-2: #B7AB92;
+      --ink-3: #8A7F69;
+      --border: #3C3220;
+      --accent: #E2495A;
+      --accent-ink: #17130D;
+      --gold: #E0AC4E;
+      --teal: #4FA79C;
+      --terracotta: #E08152;
+      --good: #6FBF7D;
+      --warn: #E0A542;
+      --critical: #E4586A;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #17130D;
+    --surface: #201A11;
+    --surface-2: #2B2318;
+    --ink: #F3ECDC;
+    --ink-2: #B7AB92;
+    --ink-3: #8A7F69;
+    --border: #3C3220;
+    --accent: #E2495A;
+    --accent-ink: #17130D;
+    --gold: #E0AC4E;
+    --teal: #4FA79C;
+    --terracotta: #E08152;
+    --good: #6FBF7D;
+    --warn: #E0A542;
+    --critical: #E4586A;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.55;
+    padding-inline: 20px;
+    padding-block: 40px 80px;
+  }
+  h1, h2, h3 { font-family: var(--font-display); font-weight: 600; text-wrap: balance; margin: 0; }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  a { color: var(--accent); }
+
+  .page {
+    max-width: 920px;
+    margin-inline: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 56px;
+  }
+
+  /* ---------- Header ---------- */
+  .masthead {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+  .eyebrow .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--good);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--good) 22%, transparent);
+    flex: none;
+  }
+  .masthead h1 { font-size: clamp(28px, 4.2vw, 40px); letter-spacing: -0.01em; }
+  .masthead .sub { color: var(--ink-2); max-width: 62ch; font-size: 15.5px; }
+
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .stat {
+    background: var(--surface);
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .stat .label { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+  .stat .value { font-family: var(--font-mono); font-size: 22px; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .stat .value.accent { color: var(--accent); }
+
+  /* ---------- Pipeline funnel ---------- */
+  .funnel-wrap h2 { font-size: 22px; margin-bottom: 6px; }
+  .funnel-wrap .caption { color: var(--ink-2); font-size: 14px; margin-bottom: 22px; max-width: 65ch; }
+  .funnel {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .stage {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+  }
+  .stage .num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-3);
+    letter-spacing: 0.08em;
+  }
+  .stage h3 { font-size: 18px; }
+  .stage .count { font-family: var(--font-mono); font-size: 26px; font-weight: 500; }
+  .stage .count small { font-size: 12px; font-weight: 400; color: var(--ink-2); font-family: var(--font-body); }
+  .stage .note { font-size: 12.5px; color: var(--ink-2); }
+  .funnel-arrow {
+    display: none;
+  }
+  @media (min-width: 640px) {
+    .stage:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      right: -20px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--ink-3);
+      font-size: 16px;
+    }
+  }
+
+  /* ---------- Domain nav ---------- */
+  .domain-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    padding-block: 10px;
+    z-index: 5;
+    margin-inline: -20px;
+    padding-inline: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .domain-nav a {
+    text-decoration: none;
+    color: var(--ink-2);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    white-space: nowrap;
+  }
+  .domain-nav a:hover { color: var(--ink); border-color: var(--ink-3); }
+
+  /* ---------- Domain sections ---------- */
+  .domain {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    scroll-margin-top: 56px;
+  }
+  .domain-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .domain-head h2 { font-size: 24px; }
+  .domain-head .tag {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    color: var(--ink-2);
+    background: var(--surface-2);
+    padding: 3px 9px;
+    border-radius: 6px;
+  }
+  .domain-desc { color: var(--ink-2); font-size: 14.5px; max-width: 68ch; }
+
+  .split {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: 18px;
+    align-items: start;
+  }
+  @media (max-width: 720px) {
+    .split { grid-template-columns: 1fr; }
+    .funnel { grid-template-columns: 1fr; }
+    .stage::after { display: none; }
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .panel-head {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 11.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .panel-body { padding: 14px; }
+
+  .raw-record {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--ink-2);
+  }
+  .raw-record .k { color: var(--accent); }
+  .raw-record + .raw-record { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  th { font-size: 10.5px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-3); font-weight: 500; }
+  td { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  td.status { font-family: var(--font-body); }
+  .table-scroll { overflow-x: auto; }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+  .pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; }
+  .pill.good { color: var(--good); background: color-mix(in oklab, var(--good) 16%, transparent); }
+  .pill.good::before { background: var(--good); }
+  .pill.warn { color: var(--warn); background: color-mix(in oklab, var(--warn) 16%, transparent); }
+  .pill.warn::before { background: var(--warn); }
+  .pill.critical { color: var(--critical); background: color-mix(in oklab, var(--critical) 16%, transparent); }
+  .pill.critical::before { background: var(--critical); }
+
+  /* ---------- Bar chart ---------- */
+  .chart { display: flex; flex-direction: column; gap: 9px; }
+  .chart-scale {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--ink-3);
+    padding-bottom: 2px;
+    border-bottom: 1px solid var(--border);
+  }
+  .bar-row { display: grid; grid-template-columns: 58px 1fr 74px; align-items: center; gap: 8px; }
+  .bar-row .bar-label { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-2); text-align: right; }
+  .bar-track { background: var(--surface-2); border-radius: 4px; height: 14px; position: relative; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; }
+  .bar-row .bar-value { font-family: var(--font-mono); font-size: 11.5px; text-align: right; font-variant-numeric: tabular-nums; }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding-top: 22px;
+    color: var(--ink-3);
+    font-size: 12.5px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  footer code {
+    font-family: var(--font-mono);
+    background: var(--surface-2);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+</style>
+
+<div class="page">
+
+  <header class="masthead">
+    <div class="eyebrow"><span class="dot"></span> LOCAL RUN &middot; NO CLOUD ENVIRONMENT ATTACHED</div>
+    <h1>BookMyShow Data Platform — Pipeline Run Report</h1>
+    <p class="sub">Output of the local Bronze → Silver → Gold pipeline (<code class="mono">scripts/run_local_pipeline.py</code>) against one batch of synthetic landing data, across all five Phase&nbsp;1 domains. Every number on this page came out of a real local run — nothing here is illustrative.</p>
+    <div class="stat-row" id="stat-row"></div>
+  </header>
+
+  <section class="funnel-wrap">
+    <h2>Bronze → Silver → Gold</h2>
+    <p class="caption">Each record moves through three stages: landed as-is, then cleansed and deduplicated, then reshaped into the tables the business actually queries.</p>
+    <div class="funnel" id="funnel"></div>
+  </section>
+
+  <nav class="domain-nav">
+    <a href="#bookings">Bookings &amp; Payments</a>
+    <a href="#inventory">Inventory &amp; Seating</a>
+    <a href="#pricing">Pricing &amp; Promotions</a>
+    <a href="#users">Users 360</a>
+  </nav>
+
+  <section class="domain" id="bookings">
+    <div class="domain-head"><h2>Bookings &amp; Payments</h2><span class="tag">gold.fact_bookings</span></div>
+    <p class="domain-desc">1,016 raw booking events landed; 994 survived cleansing (2 quarantined — a negative amount and an unknown status). Revenue is zeroed for cancelled bookings.</p>
+    <div class="split">
+      <div class="panel">
+        <div class="panel-head">Raw landing record</div>
+        <div class="panel-body" id="raw-booking"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><span>fact_bookings (sample)</span><span>994 rows</span></div>
+        <div class="panel-body table-scroll">
+          <table id="tbl-bookings"></table>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><span>Revenue by venue — gold_daily_revenue, summed</span><span id="rev-total"></span></div>
+      <div class="panel-body">
+        <div class="chart" id="chart-revenue"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="domain" id="inventory">
+    <div class="domain-head"><h2>Inventory &amp; Seating</h2><span class="tag">gold.fact_seat_occupancy</span></div>
+    <p class="domain-desc">5,334 seat-lock events landed (HELD / BOOKED / RELEASED / EXPIRED); latest state per seat determines occupancy against each venue's real capacity from <code class="mono">dim_venue</code>.</p>
+    <div class="split">
+      <div class="panel">
+        <div class="panel-head">Raw landing record</div>
+        <div class="panel-body" id="raw-seat"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><span>fact_seat_occupancy (top 10 by %)</span><span>60 shows</span></div>
+        <div class="panel-body table-scroll">
+          <table id="tbl-occupancy"></table>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><span>Occupancy % — highest-demand shows</span><span></span></div>
+      <div class="panel-body">
+        <div class="chart" id="chart-occupancy"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="domain" id="pricing">
+    <div class="domain-head"><h2>Pricing &amp; Promotions</h2><span class="tag">gold.gold_promotion_performance</span></div>
+    <p class="domain-desc">9 promotions landed, 1 quarantined (invalid discount type). 118 redemptions applied against confirmed bookings; net revenue floors at zero if a discount would exceed the booking total.</p>
+    <div class="split">
+      <div class="panel">
+        <div class="panel-head">Raw landing record</div>
+        <div class="panel-body" id="raw-promo"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><span>gold_promotion_performance</span><span>8 promotions</span></div>
+        <div class="panel-body table-scroll">
+          <table id="tbl-promo"></table>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><span>Net revenue by promotion code</span><span></span></div>
+      <div class="panel-body">
+        <div class="chart" id="chart-promo"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="domain" id="users">
+    <div class="domain-head"><h2>Users 360</h2><span class="tag">gold.gold_user_booking_summary</span></div>
+    <p class="domain-desc">Pure gold-layer aggregation over <code class="mono">fact_bookings</code> + <code class="mono">dim_user</code> — no bronze/silver of its own. The feature set a recommendation or churn model would start from.</p>
+    <div class="panel">
+      <div class="panel-head"><span>gold_user_booking_summary (top 10 by lifetime spend)</span><span>200 users</span></div>
+      <div class="panel-body table-scroll">
+        <table id="tbl-users"></table>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div>Regenerate this exact output: <code>python data/sample/generate_sample_data.py</code> then <code>python scripts/run_local_pipeline.py</code> inside <code>bmsdp/</code>.</div>
+    <div>Gold tables persist as real Delta Lake tables under <code>bmsdp/data/local_lakehouse/</code> — readable with any Parquet/Delta client.</div>
+  </footer>
+
+</div>
+
+<script>
+const DATA = {"fact_bookings_sample": [{"booking_id": "B000000", "user_id": "U00190", "venue_id": "V003", "movie_id": "M000", "booking_status": "CANCELLED", "num_seats": "6", "revenue": "0.0", "booking_date": "2026-08-28"}, {"booking_id": "B000001", "user_id": "U00098", "venue_id": "V010", "movie_id": "M004", "booking_status": "PENDING", "num_seats": "6", "revenue": "0.0", "booking_date": "2026-08-23"}, {"booking_id": "B000002", "user_id": "U00009", "venue_id": "V001", "movie_id": "M003", "booking_status": "PENDING", "num_seats": "5", "revenue": "0.0", "booking_date": "2026-08-30"}, {"booking_id": "B000003", "user_id": "U00025", "venue_id": "V013", "movie_id": "M004", "booking_status": "CONFIRMED", "num_seats": "4", "revenue": "2000.0", "booking_date": "2026-08-24"}, {"booking_id": "B000004", "user_id": "U00003", "venue_id": "V003", "movie_id": "M000", "booking_status": "CONFIRMED", "num_seats": "2", "revenue": "500.0", "booking_date": "2026-08-16"}, {"booking_id": "B000005", "user_id": "U00039", "venue_id": "V003", "movie_id": "M007", "booking_status": "CONFIRMED", "num_seats": "4", "revenue": "1000.0", "booking_date": "2026-09-02"}, {"booking_id": "B000006", "user_id": "U00086", "venue_id": "V014", "movie_id": "M007", "booking_status": "CONFIRMED", "num_seats": "6", "revenue": "2100.0", "booking_date": "2026-09-09"}, {"booking_id": "B000007", "user_id": "U00084", "venue_id": "V012", "movie_id": "M004", "booking_status": "CANCELLED", "num_seats": "6", "revenue": "0.0", "booking_date": "2026-08-28"}], "venue_revenue": [{"venue_id": "V008", "total_revenue": 94750.0}, {"venue_id": "V003", "total_revenue": 89450.0}, {"venue_id": "V012", "total_revenue": 87050.0}, {"venue_id": "V007", "total_revenue": 83350.0}, {"venue_id": "V013", "total_revenue": 81400.0}, {"venue_id": "V001", "total_revenue": 76400.0}, {"venue_id": "V005", "total_revenue": 72550.0}, {"venue_id": "V011", "total_revenue": 58550.0}, {"venue_id": "V004", "total_revenue": 52800.0}, {"venue_id": "V014", "total_revenue": 49000.0}, {"venue_id": "V010", "total_revenue": 46950.0}, {"venue_id": "V000", "total_revenue": 46450.0}, {"venue_id": "V002", "total_revenue": 37200.0}, {"venue_id": "V009", "total_revenue": 33500.0}, {"venue_id": "V006", "total_revenue": 9500.0}], "seat_occupancy": [{"show_id": "S00011", "venue_id": "V011", "capacity": 120, "occupied_seats": 75, "occupancy_pct": 62.5}, {"show_id": "S00055", "venue_id": "V013", "capacity": 180, "occupied_seats": 103, "occupancy_pct": 57.22}, {"show_id": "S00015", "venue_id": "V011", "capacity": 120, "occupied_seats": 66, "occupancy_pct": 55.0}, {"show_id": "S00021", "venue_id": "V001", "capacity": 240, "occupied_seats": 131, "occupancy_pct": 54.58}, {"show_id": "S00009", "venue_id": "V012", "capacity": 180, "occupied_seats": 96, "occupancy_pct": 53.33}, {"show_id": "S00039", "venue_id": "V014", "capacity": 120, "occupied_seats": 59, "occupancy_pct": 49.17}, {"show_id": "S00051", "venue_id": "V008", "capacity": 120, "occupied_seats": 59, "occupancy_pct": 49.17}, {"show_id": "S00034", "venue_id": "V014", "capacity": 120, "occupied_seats": 51, "occupancy_pct": 42.5}, {"show_id": "S00012", "venue_id": "V008", "capacity": 120, "occupied_seats": 51, "occupancy_pct": 42.5}, {"show_id": "S00046", "venue_id": "V003", "capacity": 300, "occupied_seats": 126, "occupancy_pct": 42.0}], "promotion_performance": [{"code": "SAVE002", "total_redemptions": 23, "total_discount_given": 3442.5, "total_net_revenue": 19210.0}, {"code": "SAVE007", "total_redemptions": 15, "total_discount_given": 3022.5, "total_net_revenue": 17127.5}, {"code": "SAVE005", "total_redemptions": 15, "total_discount_given": 2835.0, "total_net_revenue": 16065.0}, {"code": "SAVE001", "total_redemptions": 15, "total_discount_given": 2767.5, "total_net_revenue": 15682.5}, {"code": "SAVE003", "total_redemptions": 13, "total_discount_given": 2617.5, "total_net_revenue": 14407.5}, {"code": "SAVE004", "total_redemptions": 13, "total_discount_given": 2362.5, "total_net_revenue": 13387.5}, {"code": "SAVE000", "total_redemptions": 13, "total_discount_given": 1950.0, "total_net_revenue": 13000.0}, {"code": "SAVE006", "total_redemptions": 11, "total_discount_given": 1100.0, "total_net_revenue": 7600.0}], "top_users": [{"user_id": "U00075", "city": "Mumbai", "total_bookings": 8, "lifetime_spend": 12550.0, "cancellation_rate": 0.0}, {"user_id": "U00182", "city": "Bengaluru", "total_bookings": 9, "lifetime_spend": 11400.0, "cancellation_rate": 0.0}, {"user_id": "U00099", "city": "Pune", "total_bookings": 7, "lifetime_spend": 10650.0, "cancellation_rate": 0.0}, {"user_id": "U00044", "city": "Delhi", "total_bookings": 10, "lifetime_spend": 10600.0, "cancellation_rate": 0.3}, {"user_id": "U00163", "city": "Bengaluru", "total_bookings": 8, "lifetime_spend": 10400.0, "cancellation_rate": 0.0}, {"user_id": "U00042", "city": "Pune", "total_bookings": 10, "lifetime_spend": 10350.0, "cancellation_rate": 0.1}, {"user_id": "U00153", "city": "Chennai", "total_bookings": 6, "lifetime_spend": 10350.0, "cancellation_rate": 0.1667}, {"user_id": "U00034", "city": "Chennai", "total_bookings": 6, "lifetime_spend": 10150.0, "cancellation_rate": 0.0}, {"user_id": "U00166", "city": "Hyderabad", "total_bookings": 7, "lifetime_spend": 10000.0, "cancellation_rate": 0.0}, {"user_id": "U00073", "city": "Pune", "total_bookings": 9, "lifetime_spend": 9900.0, "cancellation_rate": 0.3333}], "venue_names": {"V000": "Cineplex 0", "V001": "Cineplex 1", "V002": "Cineplex 2", "V003": "Cineplex 3", "V004": "Cineplex 4", "V005": "Cineplex 5", "V006": "Cineplex 6", "V007": "Cineplex 7", "V008": "Cineplex 8", "V009": "Cineplex 9", "V010": "Cineplex 10", "V011": "Cineplex 11", "V012": "Cineplex 12", "V013": "Cineplex 13", "V014": "Cineplex 14"}, "venue_cities": {"V000": "Delhi", "V001": "Hyderabad", "V002": "Delhi", "V003": "Delhi", "V004": "Delhi", "V005": "Hyderabad", "V006": "Pune", "V007": "Delhi", "V008": "Pune", "V009": "Pune", "V010": "Mumbai", "V011": "Bengaluru", "V012": "Chennai", "V013": "Bengaluru", "V014": "Hyderabad"}, "total_revenue_all": 918900.0, "total_bookings_all": 994, "total_cancelled_all": 170};
+
+const fmtMoney = n => "₹" + Math.round(n).toLocaleString("en-IN");
+const fmtInt = n => Number(n).toLocaleString("en-IN");
+const esc = s => String(s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+
+function statusPill(status) {
+  const map = { CONFIRMED: "good", PENDING: "warn", CANCELLED: "critical" };
+  const cls = map[status] || "warn";
+  return `<span class="pill ${cls}">${status}</span>`;
+}
+
+// ---- Stat row ----
+const stats = [
+  { label: "Bookings processed", value: fmtInt(DATA.total_bookings_all) },
+  { label: "Gross revenue", value: fmtMoney(DATA.total_revenue_all), accent: true },
+  { label: "Cancelled", value: fmtInt(DATA.total_cancelled_all) },
+  { label: "Venues", value: "15" },
+  { label: "Shows", value: "60" },
+  { label: "Domains built", value: "5" },
+];
+document.getElementById("stat-row").innerHTML = stats.map(s =>
+  `<div class="stat"><span class="label">${s.label}</span><span class="value${s.accent ? " accent" : ""}">${s.value}</span></div>`
+).join("");
+
+// ---- Funnel ----
+const funnelStages = [
+  { n: "01", name: "Bronze", count: "9,415", note: "raw records landed, all 9 sources — 6 domains × entity files, as-is JSON", },
+  { n: "02", name: "Silver", count: "8,780", note: "994 bookings · 960 payments · 5,334 seat-holds · 118 redemptions · 200 users · deduped, DQ-gated" },
+  { n: "03", name: "Gold", count: "2,554", note: "facts + dims + aggregates across all 5 domains, ready to query" },
+];
+document.getElementById("funnel").innerHTML = funnelStages.map(s => `
+  <div class="stage">
+    <span class="num">STAGE ${s.n}</span>
+    <h3>${s.name}</h3>
+    <div class="count">${s.count} <small>rows</small></div>
+    <div class="note">${s.note}</div>
+  </div>
+`).join("");
+
+// ---- Raw records ----
+document.getElementById("raw-booking").innerHTML = `<div class="raw-record">{
+  <span class="k">"booking_id"</span>: "B000000",
+  <span class="k">"user_id"</span>: "U00190",
+  <span class="k">"show_id"</span>: "S00030",
+  <span class="k">"num_seats"</span>: 6,
+  <span class="k">"total_amount"</span>: 2100.0,
+  <span class="k">"booking_status"</span>: "CANCELLED",
+  <span class="k">"booking_time"</span>: "2026-08-28T01:50:17",
+  <span class="k">"is_deleted"</span>: false
+}</div>`;
+
+document.getElementById("raw-seat").innerHTML = `<div class="raw-record">{
+  <span class="k">"hold_id"</span>: "H0000000",
+  <span class="k">"show_id"</span>: "S00000",
+  <span class="k">"seat_no"</span>: "S155",
+  <span class="k">"user_id"</span>: null,
+  <span class="k">"hold_status"</span>: "EXPIRED",
+  <span class="k">"held_at"</span>: "2026-09-11T17:50:17"
+}</div>`;
+
+document.getElementById("raw-promo").innerHTML = `<div class="raw-record">{
+  <span class="k">"promotion_id"</span>: "PROMO001",
+  <span class="k">"code"</span>: "SAVE001",
+  <span class="k">"discount_type"</span>: "PERCENT",
+  <span class="k">"discount_value"</span>: 15.0,
+  <span class="k">"valid_from"</span>: "2026-08-14T07:50:17",
+  <span class="k">"status"</span>: "ACTIVE"
+}</div>`;
+
+// ---- fact_bookings table ----
+document.getElementById("tbl-bookings").innerHTML = `
+  <thead><tr><th>Booking</th><th>Venue</th><th>Movie</th><th>Status</th><th>Seats</th><th>Revenue</th></tr></thead>
+  <tbody>${DATA.fact_bookings_sample.map(r => `
+    <tr>
+      <td>${r.booking_id}</td>
+      <td>${r.venue_id}</td>
+      <td>${r.movie_id}</td>
+      <td class="status">${statusPill(r.booking_status)}</td>
+      <td>${r.num_seats}</td>
+      <td>${fmtMoney(r.revenue)}</td>
+    </tr>`).join("")}</tbody>`;
+
+// ---- Revenue chart ----
+document.getElementById("rev-total").textContent = fmtMoney(DATA.total_revenue_all) + " total";
+const maxRev = Math.max(...DATA.venue_revenue.map(v => v.total_revenue));
+document.getElementById("chart-revenue").innerHTML = `
+  <div class="chart-scale"><span>₹0</span><span>${fmtMoney(maxRev)}</span></div>
+  ${DATA.venue_revenue.slice(0, 10).map(v => `
+    <div class="bar-row">
+      <span class="bar-label">${v.venue_id}</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${(v.total_revenue/maxRev*100).toFixed(1)}%; background:var(--gold)"></div></div>
+      <span class="bar-value">${fmtMoney(v.total_revenue)}</span>
+    </div>`).join("")}`;
+
+// ---- Occupancy table + chart ----
+document.getElementById("tbl-occupancy").innerHTML = `
+  <thead><tr><th>Show</th><th>Venue</th><th>Capacity</th><th>Occupied</th><th>Occupancy</th></tr></thead>
+  <tbody>${DATA.seat_occupancy.map(r => `
+    <tr>
+      <td>${r.show_id}</td>
+      <td>${r.venue_id}</td>
+      <td>${r.capacity}</td>
+      <td>${r.occupied_seats}</td>
+      <td>${r.occupancy_pct}%</td>
+    </tr>`).join("")}</tbody>`;
+
+const maxOcc = Math.max(...DATA.seat_occupancy.map(v => v.occupancy_pct));
+document.getElementById("chart-occupancy").innerHTML = `
+  <div class="chart-scale"><span>0%</span><span>${maxOcc}%</span></div>
+  ${DATA.seat_occupancy.map(v => `
+    <div class="bar-row">
+      <span class="bar-label">${v.show_id}</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${(v.occupancy_pct/maxOcc*100).toFixed(1)}%; background:var(--teal)"></div></div>
+      <span class="bar-value">${v.occupancy_pct}%</span>
+    </div>`).join("")}`;
+
+// ---- Promo table + chart ----
+document.getElementById("tbl-promo").innerHTML = `
+  <thead><tr><th>Code</th><th>Redemptions</th><th>Discount given</th><th>Net revenue</th></tr></thead>
+  <tbody>${DATA.promotion_performance.map(r => `
+    <tr>
+      <td>${r.code}</td>
+      <td>${r.total_redemptions}</td>
+      <td>${fmtMoney(r.total_discount_given)}</td>
+      <td>${fmtMoney(r.total_net_revenue)}</td>
+    </tr>`).join("")}</tbody>`;
+
+const maxPromo = Math.max(...DATA.promotion_performance.map(v => v.total_net_revenue));
+document.getElementById("chart-promo").innerHTML = `
+  <div class="chart-scale"><span>₹0</span><span>${fmtMoney(maxPromo)}</span></div>
+  ${DATA.promotion_performance.map(v => `
+    <div class="bar-row">
+      <span class="bar-label">${v.code}</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${(v.total_net_revenue/maxPromo*100).toFixed(1)}%; background:var(--terracotta)"></div></div>
+      <span class="bar-value">${fmtMoney(v.total_net_revenue)}</span>
+    </div>`).join("")}`;
+
+// ---- Users table ----
+document.getElementById("tbl-users").innerHTML = `
+  <thead><tr><th>User</th><th>City</th><th>Bookings</th><th>Lifetime spend</th><th>Cancel rate</th></tr></thead>
+  <tbody>${DATA.top_users.map(r => `
+    <tr>
+      <td>${r.user_id}</td>
+      <td class="status">${esc(r.city)}</td>
+      <td>${r.total_bookings}</td>
+      <td>${fmtMoney(r.lifetime_spend)}</td>
+      <td>${(r.cancellation_rate*100).toFixed(1)}%</td>
+    </tr>`).join("")}</tbody>`;
+</script>

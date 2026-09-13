@@ -73,6 +73,14 @@ churn model would start from (per the platform's personalization objective).
 grants (data engineers / analysts / ML engineers), a masked `dim_user_masked`
 view so non-engineers never see raw email/phone.
 
+## Sample output
+
+`reports/pipeline_run_report.html` is a static snapshot of one real local
+pipeline run — raw landing records, gold table samples, and charts across
+all five domains, with the actual numbers a run produced (not mock data).
+Open it directly in a browser to see what the pipeline outputs without
+running anything yourself.
+
 ## Running locally
 
 Requires Java 17 and Python 3.11 (PySpark 3.5.x doesn't yet support newer
