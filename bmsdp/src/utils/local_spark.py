@@ -7,8 +7,11 @@ runtime and never imports this module.
 from delta import configure_spark_with_delta_pip
 from pyspark.sql import SparkSession
 
+from src.utils.spark_helpers import pin_pyspark_worker_python
+
 
 def get_local_delta_spark(app_name: str = "bmsdp-local") -> SparkSession:
+    pin_pyspark_worker_python()
     builder = (
         SparkSession.builder.master("local[2]")
         .appName(app_name)

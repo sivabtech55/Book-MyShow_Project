@@ -1,6 +1,10 @@
 import pytest
 from pyspark.sql import SparkSession
 
+from src.utils.spark_helpers import pin_pyspark_worker_python
+
+pin_pyspark_worker_python()
+
 
 @pytest.fixture(scope="session")
 def spark():

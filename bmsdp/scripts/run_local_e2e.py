@@ -16,7 +16,7 @@ from pyspark.sql import SparkSession
 
 from src.pipelines.bookings import transformations as tr
 from src.utils import schemas as sc
-from src.utils.spark_helpers import add_ingestion_metadata
+from src.utils.spark_helpers import add_ingestion_metadata, pin_pyspark_worker_python
 
 DATA_DIR = Path(__file__).parent.parent / "data" / "sample" / "output"
 
@@ -27,6 +27,7 @@ def read_json(spark, entity, schema):
 
 
 def main():
+    pin_pyspark_worker_python()
     spark = SparkSession.builder.master("local[2]").appName("bmsdp-e2e").getOrCreate()
     spark.sparkContext.setLogLevel("WARN")
 
